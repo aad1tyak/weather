@@ -16,6 +16,10 @@ function App() {
   const [forecast, setForecast] = useState([]);
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [periods, setPeriods] = useState([]);
+  const [hourlyForecast, setHourlyForecast] = useState([]);
+  const [hourly, setHourly] = useState([]);
+
+  const [hourlyView, setHourlyView] = useState(true);
 
   const location = {
     San_deiago: "34.0463732,-116.7161478",
@@ -26,11 +30,18 @@ function App() {
     axios
       .get(`https://api.weather.gov/points/${location}`)
       .then((resWeather) => {
+        setWeather(resWeather.data.properties);
         axios.get(resWeather.data.properties.forecast).then((resForecast) => {
           setCurrentTime(dayjs());
           setForecast(resForecast.data.properties);
           setPeriods(resForecast.data.properties.periods);
         });
+        axios
+          .get(resWeather.data.properties.forecastHourly)
+          .then((resHourlyForecast) => {
+            setHourlyForecast(resHourlyForecast.data.properties);
+            setHourly(resHourlyForecast.data.properties.periods);
+          });
       })
       .catch((err) => console.log(err));
   };
@@ -44,6 +55,7 @@ function App() {
 
   const updateForecast = () => {
     loadForecast(location.new_york);
+    console.log(weather);
     console.log(periods);
   };
 
@@ -53,9 +65,9 @@ function App() {
         Reload the Forecast
       </a>
       <p>{`Last reloaded ${dayjs.duration(currentTime.diff(forecast.generatedAt)).humanize()} ago`}</p>
-      {periods.map((period, index) => (
-        <Periods {...period} />
-      ))}
+      {hourlyView
+        ? hourly.map((item, index) => <HourlyPeriods {...item} key={index} />)
+        : periods.map((period, index) => <Periods {...period} key={index} />)}
     </>
   );
 }
@@ -63,10 +75,44 @@ function App() {
 export const Periods = (period) => {
   return (
     <div className="weather-card">
+      <h1>{period.shortForecast}</h1>
+      <img src={period.icon} />
       <h3>
         {period.name} temperature is {period.temperature}
         {period.temperatureUnit}
       </h3>
+      <p>
+        Probability Of Precipitation is{" "}
+        {period.probabilityOfPrecipitation.value}
+      </p>
+      <p>
+        Wind Speed is {period.windSpeed} moving in {period.windDirection}
+      </p>
+      <span>{period.detailedForecast}</span>
+    </div>
+  );
+};
+
+export const HourlyPeriods = (hourlyPeriod) => {
+  return (
+    <div className="weather-card">
+      <h1>{hourlyPeriod.shortForecast}</h1>
+      <img src={hourlyPeriod.icon} />
+      <h3>
+        {dayjs(hourlyPeriod.startTime).format("hh A")} to{" "}
+        {dayjs(hourlyPeriod.endTime).format("hh A")} temperature is{" "}
+        {hourlyPeriod.temperature}
+        {hourlyPeriod.temperatureUnit}
+      </h3>
+      <p>
+        Probability Of Precipitation is{" "}
+        {hourlyPeriod.probabilityOfPrecipitation.value}
+      </p>
+      <p>
+        Wind Speed is {hourlyPeriod.windSpeed} moving in{" "}
+        {hourlyPeriod.windDirection}
+      </p>
+      <span>{hourlyPeriod.detailedForecast}</span>
     </div>
   );
 };
