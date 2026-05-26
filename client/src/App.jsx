@@ -15,6 +15,7 @@ function App() {
   const [weather, setWeather] = useState([]);
   const [forecast, setForecast] = useState([]);
   const [currentTime, setCurrentTime] = useState(dayjs());
+  const [periods, setPeriods] = useState([]);
 
   const location = {
     San_deiago: "34.0463732,-116.7161478",
@@ -26,7 +27,9 @@ function App() {
       .get(`https://api.weather.gov/points/${location}`)
       .then((resWeather) => {
         axios.get(resWeather.data.properties.forecast).then((resForecast) => {
+          setCurrentTime(dayjs());
           setForecast(resForecast.data.properties);
+          setPeriods(resForecast.data.properties.periods);
         });
       })
       .catch((err) => console.log(err));
@@ -41,8 +44,7 @@ function App() {
 
   const updateForecast = () => {
     loadForecast(location.new_york);
-    setCurrentTime(dayjs());
-    console.log(forecast);
+    console.log(periods);
   };
 
   return (
@@ -51,10 +53,22 @@ function App() {
         Reload the Forecast
       </a>
       <p>{`Last reloaded ${dayjs.duration(currentTime.diff(forecast.generatedAt)).humanize()} ago`}</p>
-      {}
+      {periods.map((period, index) => (
+        <Periods {...period} />
+      ))}
     </>
   );
 }
 
-export const periods = ({ period }) => {};
+export const Periods = (period) => {
+  return (
+    <div className="weather-card">
+      <h3>
+        {period.name} temperature is {period.temperature}
+        {period.temperatureUnit}
+      </h3>
+    </div>
+  );
+};
+
 export default App;
