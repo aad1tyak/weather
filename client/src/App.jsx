@@ -59,12 +59,20 @@ function App() {
     console.log(periods);
   };
 
+    const changeForecastType = () => {
+        setHourlyView(!hourlyView);
+    }
+
   return (
     <>
       <a className="button" onClick={updateForecast}>
         Reload the Forecast
       </a>
       <p>{`Last reloaded ${dayjs.duration(currentTime.diff(forecast.generatedAt)).humanize()} ago`}</p>
+      <a className="button" onClick={changeForecastType}>
+      {hourlyView ? "Show period Forecast" : "Show hourly Forecast"}
+      </a>
+
       {hourlyView
         ? hourly.map((item, index) => <HourlyPeriods {...item} key={index} />)
         : periods.map((period, index) => <Periods {...period} key={index} />)}
