@@ -82,9 +82,15 @@ function App() {
         {hourlyView ? "Show period Forecast" : "Show hourly Forecast"}
       </a>
       {hourlyView ? (
-        <SelectedCardHourly selectedCard={selectedHourlyCard} />
+        <SelectedCard
+          selectedCard={selectedHourlyCard}
+          hourlyView={hourlyView}
+        />
       ) : (
-        <SelectedCardPeriod selectedCard={selectedPeriodCard} />
+        <SelectedCard
+          selectedCard={selectedPeriodCard}
+          hourlyView={hourlyView}
+        />
       )}
       {hourlyView
         ? hourly.map((item, index) => (
@@ -112,13 +118,39 @@ function App() {
 export const Forecasts = ({ periods }) => {
   return (
     <div className="cards">
-      <p clssName="cards-name">
+      <p className="cards-name">
         {periods.name === ""
           ? dayjs(periods.startTime).format("hh A") +
             "-" +
             dayjs(periods.endTime).format("hh A")
           : periods.name}
       </p>
+    </div>
+  );
+};
+
+export const SelectedCard = ({ selectedCard, hourlyView }) => {
+  return (
+    <div>
+      <h1>
+        {selectedCard.temperature}
+        {selectedCard.temperatureUnit}
+      </h1>
+      <p>
+        {hourlyView
+          ? dayjs(periods.startTime).format("hh A") +
+            "-" +
+            dayjs(periods.endTime).format("hh A")
+          : periods.name}{" "}
+      </p>
+      <div className="wind-card"></div>
+      <div className="precipitation-card"></div>
+      {hourlyView && (
+        <div>
+          <div className="humidity-card"></div>
+          <div className="dewpoint-card"></div>
+        </div>
+      )}
     </div>
   );
 };
