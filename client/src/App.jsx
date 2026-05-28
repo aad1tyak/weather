@@ -18,8 +18,10 @@ function App() {
   const [periods, setPeriods] = useState([]);
   const [hourlyForecast, setHourlyForecast] = useState([]);
   const [hourly, setHourly] = useState([]);
-
   const [hourlyView, setHourlyView] = useState(true);
+
+  const [selectedPeriodCard, setSelectedPeriodCard] = useState([]);
+  const [selectedHourlyCard, setSelectedHourlyCard] = useState([]);
 
   const location = {
     San_deiago: "34.0463732,-116.7161478",
@@ -35,12 +37,14 @@ function App() {
           setCurrentTime(dayjs());
           setForecast(resForecast.data.properties);
           setPeriods(resForecast.data.properties.periods);
+          setSelectedPeriodCard(resForecast.data.properties.periods[0]);
         });
         axios
           .get(resWeather.data.properties.forecastHourly)
           .then((resHourlyForecast) => {
             setHourlyForecast(resHourlyForecast.data.properties);
             setHourly(resHourlyForecast.data.properties.periods);
+            setSelectedHourlyCard(resHourlyForecast.data.properties.periods[0]);
           });
       })
       .catch((err) => console.log(err));
@@ -59,68 +63,90 @@ function App() {
     console.log(periods);
   };
 
-    const changeForecastType = () => {
-        setHourlyView(!hourlyView);
-    }
+  const changeForecastType = () => {
+    setHourlyView(!hourlyView);
+  };
 
+  const changeMainCard = () => {};
   return (
     <>
-      <a className="button" onClick={updateForecast}>
-        Reload the Forecast
-      </a>
-      <p>{`Last reloaded ${dayjs.duration(currentTime.diff(forecast.generatedAt)).humanize()} ago`}</p>
+      <img
+        src="../media/reload-svgrepo.svg"
+        width="30"
+        onClick={updateForecast}
+      />
+      <span
+        style={{ padding: 10 }}
+      >{`Last reloaded ${dayjs.duration(currentTime.diff(forecast.generatedAt)).humanize()} ago`}</span>
       <a className="button" onClick={changeForecastType}>
-      {hourlyView ? "Show period Forecast" : "Show hourly Forecast"}
+        {hourlyView ? "Show period Forecast" : "Show hourly Forecast"}
       </a>
-
+      {hourlyView ? (
+        <SelectedCardHourly selectedCard={selectedHourlyCard} />
+      ) : (
+        <SelectedCardPeriod selectedCard={selectedPeriodCard} />
+      )}
       {hourlyView
-        ? hourly.map((item, index) => <HourlyPeriods {...item} key={index} />)
-        : periods.map((period, index) => <Periods {...period} key={index} />)}
+        ? hourly.map((item, index) => (
+            <Forecasts
+              periods={item}
+              key={index}
+              onClick={() => {
+                changeMainCard(item);
+              }}
+            />
+          ))
+        : periods.map((item, index) => (
+            <Forecasts
+              periods={item}
+              key={index}
+              onClick={() => {
+                changeMainCard(item);
+              }}
+            />
+          ))}
     </>
   );
 }
 
-export const Periods = (period) => {
+export const Forecasts = ({ periods }) => {
   return (
-    <div className="weather-card">
-      <h1>{period.shortForecast}</h1>
-      <img src={period.icon} />
-      <h3>
-        {period.name} temperature is {period.temperature}
-        {period.temperatureUnit}
-      </h3>
-      <p>
-        Probability Of Precipitation is{" "}
-        {period.probabilityOfPrecipitation.value}
+    <div className="cards">
+      <p clssName="cards-name">
+        {periods.name === ""
+          ? dayjs(periods.startTime).format("hh A") +
+            "-" +
+            dayjs(periods.endTime).format("hh A")
+          : periods.name}
       </p>
-      <p>
-        Wind Speed is {period.windSpeed} moving in {period.windDirection}
-      </p>
-      <span>{period.detailedForecast}</span>
     </div>
   );
 };
 
-export const HourlyPeriods = (hourlyPeriod) => {
+export const SelectedCardHourly = ({ selectedCard }) => {
   return (
-    <div className="weather-card">
-      <h1>{hourlyPeriod.shortForecast}</h1>
-      <img src={hourlyPeriod.icon} />
-      <h3>
-        {dayjs(hourlyPeriod.startTime).format("hh A")} to{" "}
-        {dayjs(hourlyPeriod.endTime).format("hh A")} temperature is{" "}
-        {hourlyPeriod.temperature}
-        {hourlyPeriod.temperatureUnit}
-      </h3>
-      <p>
-        Probability Of Precipitation is{" "}
-        {hourlyPeriod.probabilityOfPrecipitation.value}
-      </p>
-      <p>
-        Wind Speed is {hourlyPeriod.windSpeed} moving in{" "}
-        {hourlyPeriod.windDirection}
-      </p>
-      <span>{hourlyPeriod.detailedForecast}</span>
+    <div className="main-card">
+      <h1>
+        {selectedCard.temperature}
+        {selectedCard.temperatureUnit}
+      </h1>
+      <div className="wind-card"></div>
+      <div className="precipitation-card"></div>
+      <div className="humidity-card"></div>
+      <div className="dewpoint-card"></div>
+    </div>
+  );
+};
+
+export const SelectedCardPeriod = ({ selectedCard }) => {
+  return (
+    <div className="main-card">
+      <h1>
+        {selectedCard.temperature}
+        {selectedCard.temperatureUnit}
+      </h1>
+      <div className="wind-card"></div>
+      <div className="precipitation-card"></div>
     </div>
   );
 };
